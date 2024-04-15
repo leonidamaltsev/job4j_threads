@@ -1,6 +1,7 @@
-package ru.job4j;
+package ru.job4j.io;
 
 import java.io.*;
+import java.util.function.Predicate;
 
 /**
  * Необходимо поправить в коде следующие ошибки:
@@ -14,40 +15,32 @@ import java.io.*;
 public class ParseFile {
     private File file;
 
-    public synchronized void setFile(File file) {
+    public ParseFile(File file) {
         this.file = file;
     }
 
-    public synchronized File getFile() {
-        return file;
-    }
-
     public String getContent() throws IOException {
-        InputStream input = new FileInputStream(file);
-        String output = "";
-        int data;
-        while ((data = input.read()) > 0) {
-            output += (char) data;
-        }
-        return output;
+        Predicate<Character> predicate = x -> true;
+        return content(predicate);
     }
 
     public String getContentWithoutUnicode() throws IOException {
-        InputStream input = new FileInputStream(file);
-        String output = "";
-        int data;
-        while ((data = input.read()) > 0) {
-            if (data < 0x80) {
-                output += (char) data;
-            }
-        }
-        return output;
+        Predicate<Character> predicate = x -> x < 0x80;
+        return content(predicate);
     }
 
-    public void saveContent(String content) throws IOException {
-        OutputStream o = new FileOutputStream(file);
-        for (int i = 0; i < content.length(); i++) {
-            o.write(content.charAt(i));
+    public String content(Predicate<Character> filter) {
+        StringBuilder output = new StringBuilder();
+        try (InputStream input = new FileInputStream(file)) {
+            int data;
+            while ((data = input.read()) > 0) {
+                if (filter.test((char) data)) {
+                    output.append((char) data);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return output.toString();
     }
 }
