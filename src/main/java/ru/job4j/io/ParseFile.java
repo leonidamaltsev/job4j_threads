@@ -20,20 +20,18 @@ public class ParseFile {
     }
 
     public String getContent() throws IOException {
-        Predicate<Character> predicate = x -> true;
-        return content(predicate);
+        return content(x -> true);
     }
 
     public String getContentWithoutUnicode() throws IOException {
-        Predicate<Character> predicate = x -> x < 0x80;
-        return content(predicate);
+        return content(x -> x < 0x80);
     }
 
     public String content(Predicate<Character> filter) {
         StringBuilder output = new StringBuilder();
         try (InputStream input = new FileInputStream(file)) {
             int data;
-            while ((data = input.read()) > 0) {
+            while ((data = input.read()) != -1) {
                 if (filter.test((char) data)) {
                     output.append((char) data);
                 }
