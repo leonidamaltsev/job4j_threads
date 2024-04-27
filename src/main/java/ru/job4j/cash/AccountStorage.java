@@ -1,5 +1,8 @@
 package ru.job4j.cash;
 
+import net.jcip.annotations.GuardedBy;
+import net.jcip.annotations.ThreadSafe;
+
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -12,26 +15,38 @@ import java.util.Optional;
  * по переводу денег с одного счета на другой. В этом задании нужно сделать блокирующий кеш AccountStorage для модели Account.
  */
 
+@ThreadSafe
 public class AccountStorage {
+    @GuardedBy("this")
     private final HashMap<Integer, Account> accounts = new HashMap<>();
 
-    public boolean add(Account account) {
-        return false;
+    public synchronized boolean add(Account account) {
+        return accounts.putIfAbsent(account.id(), account) == null;
     }
 
-    public boolean update(Account account) {
-        return false;
+    public synchronized boolean update(Account account) {
+        return accounts.replace(account.id(), account) != null;
     }
 
-    public void delete(int id) {
-
+    public synchronized void delete(int id) {
+        accounts.remove(id);
     }
 
-    public Optional<Account> getById(int id) {
-        return Optional.empty();
+    public synchronized Optional<Account> getById(int id) {
+        return Optional.ofNullable(accounts.get(id));
     }
 
-    public boolean transfer(int fromId, int toId, int amount) {
-        return false;
+    public synchronized boolean transfer(int fromId, int toId, int amount) {
+        Account fromAccount = accounts.get(fromId);
+        Account toAccount = accounts.get(toId);
+        if (fromAccount == null || toAccount == null || fromAccount.amount() < amount) {
+            return false;
+        }
+        Account updatedFromAccount = new Account(fromId, fromAccount.amount() - amount);
+        Account updatedToAccount = new Account(toId, toAccount.amount() + amount);
+        accounts.replace(fromId, updatedFromAccount);
+        accounts.replace(toId, updatedToAccount);
+        return true;
     }
+        
 }
