@@ -17,6 +17,7 @@ public class ThreadPool {
     /**
      * Конструктор ThreadPool.
      * Здесь создаются нити в количестве size и добавляются в threads.
+     * Инициализация пула (size) должна быть по количеству ядер в системе
      * Каждая нить запускает метод tasks.poll().
      */
 
@@ -26,12 +27,14 @@ public class ThreadPool {
             Thread thread = new Thread(() -> {
                 while (true) {
                     try {
-                        tasks.poll();
+                        tasks.poll().run();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
                 }
             });
+            threads.add(thread);
+            thread.start();
         }
     }
 
@@ -53,4 +56,21 @@ public class ThreadPool {
             thread.interrupt();
         }
     }
+
+    /**
+     * Основной метод для проверки работы ThreadPool.
+     * Создает пул потоков, запускает 5 задач, которые выводят сообщение в консоль,
+     * а затем завершает работу пула.
+     */
+
+    public static void main(String[] args) throws InterruptedException {
+        ThreadPool pool = new ThreadPool();
+        for (int i = 0; i < 5; i++) {
+            pool.work(() -> System.out.println("Задача " + Thread.currentThread().getName()
+                    + " выполняется."));
+        }
+        pool.shutdown();
+    }
 }
+
+
