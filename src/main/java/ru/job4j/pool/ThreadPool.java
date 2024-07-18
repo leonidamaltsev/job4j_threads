@@ -12,7 +12,8 @@ import java.util.List;
 
 public class ThreadPool {
     private final List<Thread> threads = new LinkedList<>();
-    private final SimpleBlockingQueue<Runnable> tasks = new SimpleBlockingQueue<>();
+    private final int size = Runtime.getRuntime().availableProcessors();
+    private final SimpleBlockingQueue<Runnable> tasks = new SimpleBlockingQueue<>(size);
 
     /**
      * Конструктор ThreadPool.
@@ -22,7 +23,6 @@ public class ThreadPool {
      */
 
     public ThreadPool() {
-        int size = Runtime.getRuntime().availableProcessors();
         for (int i = 0; i < size; i++) {
             Thread thread = new Thread(() -> {
                 while (!Thread.currentThread().isInterrupted()) {
@@ -65,9 +65,15 @@ public class ThreadPool {
 
     public static void main(String[] args) throws InterruptedException {
         ThreadPool pool = new ThreadPool();
-        for (int i = 0; i < 5; i++) {
-            pool.work(() -> System.out.println("Задача " + Thread.currentThread().getName()
-                    + " выполняется."));
+        for (int i = 0; i < 10; i++) {
+            pool.work(() -> {
+                System.out.println("Задача " + Thread.currentThread().getName() + " выполняется.");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
         }
         pool.shutdown();
     }
