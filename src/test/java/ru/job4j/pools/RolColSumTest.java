@@ -14,7 +14,7 @@ class RolColSumTest {
                 {4, 5, 6},
                 {7, 8, 9}
         };
-        RolColSum.Sums[] result = RolColSum.sum(matrix);
+        Sums[] result = RolColSum.sum(matrix);
         assertEquals(6, result[0].getRowSum());
         assertEquals(12, result[0].getColSum());
     }
@@ -26,7 +26,7 @@ class RolColSumTest {
                 {4, 5, 6},
                 {7, 8, 9}
         };
-        RolColSum.Sums[] result = RolColSum.asyncSum(matrix);
+        Sums[] result = RolColSum.asyncSum(matrix);
         assertEquals(6, result[0].getRowSum());
         assertEquals(12, result[0].getColSum());
     }
